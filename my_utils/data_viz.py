@@ -35,7 +35,7 @@ def turbo_plot(df, X, y,classification):
             axs = subfig.subplots(1, 4)
             sns.countplot(data = X, x = X.columns[outerind], ax = axs[0],order=X[X.columns[outerind]].value_counts().sort_values(ascending=False).index)
             sns.countplot(data = X, x = X.columns[outerind], hue=y, ax = axs[1],order=X[X.columns[outerind]].value_counts().sort_values(ascending=False).index)
-            mosaic_plot(df,X.columns[outerind],df.survived.name,ax=axs[2])
+            mosaic_plot(df,X.columns[outerind],y.name,ax=axs[2])
             if classification: 
                 sns.stripplot(data = X, x = y, y=X.columns[outerind], hue=y, ax = axs[3])
             else:
@@ -51,7 +51,7 @@ def quick_check(df, target:str, classification=True, to_drop=None):
         if all(x in df.columns for x in to_drop):
             raise ValueError('all elements in to_drop are not in df.columns')
 
-        if not isintance(to_drop,list) and isintance(to_drop,str):
+        if not isinstance(to_drop,list) and isinstance(to_drop,str):
             to_drop=[to_drop]
         else:
             raise TypeError('to_drop type must be list of string')
@@ -67,14 +67,15 @@ def quick_check(df, target:str, classification=True, to_drop=None):
 
     #Features to drop
     super_drop = check[check>15]
-    print(f'\nYou might want to drop these features: {", ".join(super_drop.index)}')
-    imputation = df[check[(check>0) & (check<15)].index].dtypes
+    if len(super_drop)!=0:
+        print(f'\nYou might want to drop these features: {", ".join(super_drop.index)}')
+    print(f'\nNo features to drop found.')
     
     print('\n')
     print(df.info())
 
     print('\n')
     print("Let's have a look at all the features")
-    X=df.drop(columns=(target if not to_drop else [target_name]+to_drop))
+    X=df.drop(columns=(target if not to_drop else [target]+to_drop))
     y=df[target]
     turbo_plot(df, X,y,classification)
