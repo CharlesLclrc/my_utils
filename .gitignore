@@ -1,0 +1,7 @@
+.python-version
+**/*.pyc
+**/*.egg
+**/*.egg*
+__pycache__/
+**/*.csv
+
