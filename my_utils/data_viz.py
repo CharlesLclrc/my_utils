@@ -12,44 +12,42 @@ def mosaic_plot(df : pd.DataFrame , X : str , y : str , ax):
     labelizer = lambda k: {(str(cpl[0]),str(cpl[1])) : f'{cpl[0]}-{cpl[1]}\n{round(cross.loc[cpl[1],cpl[0]]/cross.loc[:,cpl[0]].sum()*100,2)}%'  for cpl in couples}[k]
     mosaic(df, [y, X],properties=props,labelizer = labelizer, ax=ax)
     
-def turbo_plot(df : pd.DataFrame, target : str, classification : bool):
+def turbo_plot(df : pd.DataFrame, target : str, classification : bool, num_only : bool = False):
     X= df.drop(columns=target)
     y= df[target]
     
-    print(1)
     fig = plt.figure(constrained_layout=True,figsize=(15,round(10/3*df.shape[1])))
     subfigs = fig.subfigures(X.shape[1], 1,squeeze=False,hspace=20)
-    print(2)
     for outerind, subfig in enumerate(subfigs.flat):
         #plotting numerical features
-        print(3)
+        
         if X[X.columns[outerind]].dtypes not in ['object','categorical','string','bool'] and round(X[X.columns[outerind]].nunique()/df.shape[0]*100,2)>9:
-            print(4)
             subfig.suptitle(f'Subfig {X.columns[outerind]}')
             axs = subfig.subplots(1, 4)
             sns.histplot(data = X, x = X.columns[outerind], kde=True, ax = axs[0])
+            sns.boxplot(data = X, x = X.columns[outerind], ax = axs[1])
+            qqplot(X[X.columns[outerind]],line='s',ax=axs[2])
             if classification: 
-                sns.boxplot(data = X, x = X.columns[outerind], ax = axs[1])
-                qqplot(X[X.columns[outerind]],line='s',ax=axs[2])
                 sns.stripplot(data = X, x = y, y=X.columns[outerind], hue=y, ax = axs[3])
             else: 
                 sns.scatterplot(data = X, x = X.columns[outerind], y=y, ax = axs[3])
 
         #plotting categorical features
         else:
-            print(5)
-            subfig.suptitle(f'Subfig {X.columns[outerind]}')
-            axs = subfig.subplots(1, 4)
-            sns.countplot(data = X, x = X.columns[outerind], ax = axs[0],order=X[X.columns[outerind]].value_counts().sort_values(ascending=False).index)
-            sns.countplot(data = X, x = X.columns[outerind], hue=y, ax = axs[1],order=X[X.columns[outerind]].value_counts().sort_values(ascending=False).index)
-            mosaic_plot(df,X.columns[outerind],y.name,ax=axs[2])
-            if classification: 
-                sns.stripplot(data = X, x = y, y=X.columns[outerind], hue=y, ax = axs[3])
-            else:
-                sns.scatterplot(data = X, x = X.columns[outerind], y=y, ax = axs[3])
+            if not num_only:
+                subfig.suptitle(f'Subfig {X.columns[outerind]}')
+                axs = subfig.subplots(1, 4)
+                sns.countplot(data = X, x = X.columns[outerind], ax = axs[0],order=X[X.columns[outerind]].value_counts().sort_values(ascending=False).index)
+                if classification: 
+                    sns.countplot(data = X, x = X.columns[outerind], hue=y, ax = axs[1],order=X[X.columns[outerind]].value_counts().sort_values(ascending=False).index)
+                    mosaic_plot(df,X.columns[outerind],y.name,ax=axs[2])
+                    sns.stripplot(data = X, x = y, y=X.columns[outerind], hue=y, ax = axs[3])
+                else:
+                    qqplot(X[X.columns[outerind]],line='s',ax=axs[1])
+                    sns.scatterplot(data = X, x = X.columns[outerind], y=y, ax = axs[3])
     return plt.show()
 
-def quick_check(df : pd.DataFrame, target : str, classification : bool = True, to_drop : list = None):
+def quick_check(df : pd.DataFrame, target : str, classification : bool = True, to_drop : list = None, num_only : bool = False):
     if target not in df.columns:
         raise ValueError('target not in df.columns')
     if not isinstance(target,str):
@@ -84,4 +82,4 @@ def quick_check(df : pd.DataFrame, target : str, classification : bool = True, t
     print('\n')
     print("Let's have a look at all the features")
     if to_drop : df.drop(columns=to_drop,inplace=True)
-    turbo_plot(df, target, classification)
+    turbo_plot(df, target, classification, num_only)
