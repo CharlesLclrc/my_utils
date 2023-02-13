@@ -28,9 +28,9 @@ def turbo_plot(df : pd.DataFrame, target : str, classification : bool):
             subfig.suptitle(f'Subfig {X.columns[outerind]}')
             axs = subfig.subplots(1, 4)
             sns.histplot(data = X, x = X.columns[outerind], kde=True, ax = axs[0])
-            sns.boxplot(data = X, x = X.columns[outerind], ax = axs[1])
-            qqplot(X[X.columns[outerind]],line='s',ax=axs[2])
             if classification: 
+                sns.boxplot(data = X, x = X.columns[outerind], ax = axs[1])
+                qqplot(X[X.columns[outerind]],line='s',ax=axs[2])
                 sns.stripplot(data = X, x = y, y=X.columns[outerind], hue=y, ax = axs[3])
             else: 
                 sns.scatterplot(data = X, x = X.columns[outerind], y=y, ax = axs[3])
