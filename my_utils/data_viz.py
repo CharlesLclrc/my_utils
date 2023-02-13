@@ -4,7 +4,7 @@ from statsmodels.graphics.gofplots import qqplot
 from statsmodels.graphics.mosaicplot import mosaic
 import pandas as pd
 
-def mosaic_plot(df,X,y, ax=None):
+def mosaic_plot(df : pd.DataFrame , X : str , y : str , ax):
     default_colors =plt.rcParams['axes.prop_cycle'].by_key()['color']
     cross = pd.crosstab(df[X],df[y])
     couples = cross.unstack().index
@@ -12,13 +12,19 @@ def mosaic_plot(df,X,y, ax=None):
     labelizer = lambda k: {(str(cpl[0]),str(cpl[1])) : f'{cpl[0]}-{cpl[1]}\n{round(cross.loc[cpl[1],cpl[0]]/cross.loc[:,cpl[0]].sum()*100,2)}%'  for cpl in couples}[k]
     mosaic(df, [y, X],properties=props,labelizer = labelizer, ax=ax)
     
-def turbo_plot(df, X, y,classification):
+def turbo_plot(df : pd.DataFrame, target : str, classification : bool):
+    X= df.drop(columns=target)
+    y= df[target]
+    
+    print(1)
     fig = plt.figure(constrained_layout=True,figsize=(15,round(10/3*df.shape[1])))
     subfigs = fig.subfigures(X.shape[1], 1,squeeze=False,hspace=20)
-
+    print(2)
     for outerind, subfig in enumerate(subfigs.flat):
         #plotting numerical features
-        if X[X.columns[outerind]].dtypes not in ['object','categorical','string'] and round(X[X.columns[outerind]].nunique()/df.shape[0]*100,2)>9:
+        print(3)
+        if X[X.columns[outerind]].dtypes not in ['object','categorical','string','bool'] and round(X[X.columns[outerind]].nunique()/df.shape[0]*100,2)>9:
+            print(4)
             subfig.suptitle(f'Subfig {X.columns[outerind]}')
             axs = subfig.subplots(1, 4)
             sns.histplot(data = X, x = X.columns[outerind], kde=True, ax = axs[0])
@@ -31,6 +37,7 @@ def turbo_plot(df, X, y,classification):
 
         #plotting categorical features
         else:
+            print(5)
             subfig.suptitle(f'Subfig {X.columns[outerind]}')
             axs = subfig.subplots(1, 4)
             sns.countplot(data = X, x = X.columns[outerind], ax = axs[0],order=X[X.columns[outerind]].value_counts().sort_values(ascending=False).index)
@@ -42,7 +49,7 @@ def turbo_plot(df, X, y,classification):
                 sns.scatterplot(data = X, x = X.columns[outerind], y=y, ax = axs[3])
     return plt.show()
 
-def quick_check(df, target:str, classification=True, to_drop=None):
+def quick_check(df : pd.DataFrame, target : str, classification : bool = True, to_drop : list = None):
     if target not in df.columns:
         raise ValueError('target not in df.columns')
     if not isinstance(target,str):
@@ -51,9 +58,9 @@ def quick_check(df, target:str, classification=True, to_drop=None):
         if all(x in df.columns for x in to_drop):
             raise ValueError('all elements in to_drop are not in df.columns')
 
-        if not isinstance(to_drop,list) and isinstance(to_drop,str):
+        if isinstance(to_drop,str):
             to_drop=[to_drop]
-        else:
+        if not isinstance(to_drop, list):
             raise TypeError('to_drop type must be list of string')
     
     
@@ -76,6 +83,5 @@ def quick_check(df, target:str, classification=True, to_drop=None):
 
     print('\n')
     print("Let's have a look at all the features")
-    X=df.drop(columns=(target if not to_drop else [target]+to_drop))
-    y=df[target]
-    turbo_plot(df, X,y,classification)
+    if to_drop : df.drop(columns=to_drop,inplace=True)
+    turbo_plot(df, target, classification)
