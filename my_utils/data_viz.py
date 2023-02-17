@@ -89,7 +89,14 @@ def turbo_plot(df : pd.DataFrame, target : str, classification : bool, num_only 
                     sns.scatterplot(data = X, x = X.columns[outerind], y=y, ax = axs[3])
     return plt.show()
 
-def quick_check(df : pd.DataFrame, target : str, classification : bool = None, plot_overview : bool = True, to_drop : list = None, num_only : bool = False):
+def quick_check(df : pd.DataFrame,
+                target : str,
+                classification : bool = None,
+                plot_overview : bool = True,
+                to_drop : list = None,
+                num_only : bool = False,
+                threshold : int = 3
+                ):
 
 
     #Tests all arguments
@@ -149,7 +156,7 @@ def quick_check(df : pd.DataFrame, target : str, classification : bool = None, p
         else: 
             num_feats.append(feature)
             col_info[feature]['type'] = 'continuous'
-            col_info[feature]['outliers'] = count_outliers(df[feature])
+            col_info[feature]['outliers'] = count_outliers(df[feature], threshold)
             col_info[feature]['skew'] = df[feature].skew()
             col_info[feature]['kurt'] = df[feature].kurt()            
             if abs(col_info[feature]['skew']) > 2 or \
