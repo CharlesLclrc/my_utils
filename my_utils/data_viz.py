@@ -7,6 +7,8 @@ import seaborn as sns
 from statsmodels.graphics.gofplots import qqplot
 from statsmodels.graphics.mosaicplot import mosaic
 import pandas as pd
+from matplotlib.axes import Axes
+from my_utils.utils import hex_validator
 
 def count_outliers(data : pd.Series, threshold : int = 3) -> float:
 
@@ -23,11 +25,19 @@ def count_outliers(data : pd.Series, threshold : int = 3) -> float:
 	iqr = data.loc[~mask]
 	return iqr.shape[0]
 
-def mosaic_plot(df : pd.DataFrame , X : str , y : str , ax) -> mosaic:
+def mosaic_plot(df : pd.DataFrame , X : str , y : str , ax : Axes, colors : list = None) -> mosaic:
     '''Function to plot a mosaic plot using statsmodels.
     Base color is the one for matplotlib'''
     
-    default_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    if not colors:
+        default_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    
+    if not isinstance(colors,list):
+        raise TypeError("Please enter a list of colors in hex convention")
+    
+    if not hex_validator(colors):
+        raise TypeError("Please enter a list of colors in hex convention")
+
     
     #Setting cross tables to create couples between target and feature unique values
     cross = pd.crosstab(df[X],df[y])
